@@ -1,0 +1,178 @@
+# AgentFlow Configuration File
+group_size: 2
+# Model Configuration
+model:
+  temperature: 0.0  # 全局默认温度参数，当未指定温度时使用此值
+  max_length: 8192  # 扩大最大输入长度
+  # Planner model (trainable)
+  planner_path: "root/.cache/modelscope/hub/models/Qwen/Qwen3-1___7B"
+  planner_model_name: "Qwen3-1___7B"
+  dashscope_api_key: "sk-0f410e5153194f36a77370f83d5fb924"
+  dashscope_base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  
+  # Other modules (API-based)
+  executor_is_shared_planner: true
+  executor_model_name: "qwen-plus"
+  verifier_is_shared_planner: true
+  verifier_model_name: "qwen-plus"
+  generator_is_shared_planner: true
+  generator_model_name: "qwen-plus"
+  memory_filter_model_name: "qwen2.5-7b-instruct-1m"
+  
+  # BaseGenerator tool (local model)
+  base_generator:
+    model_path: "root/.cache/modelscope/hub/models/Qwen/Qwen3-1___7B"
+    device: "cuda"
+    torch_dtype: "float16"
+    max_length: 8192  # 扩大最大生成长度以保留更多上下文信息
+  python_executor:
+    model_name: "qwen-plus"
+
+  
+  # Model loading settings
+  torch_dtype: "float16"
+  device_map: "cuda:0"
+  trust_remote_code: true
+  use_4bit: false
+  max_memory: {"0": "10GB"}  # 减少最大内存限制，预留一些空间
+  low_cpu_mem_usage: true  # 启用低CPU内存使用模式
+  use_cache: true  # 启用缓存以减少重复计算
+
+# Agent Configuration
+agent:
+  # Memory settings
+  max_memory_length: 8192  # 扩大内存长度以保留更多上下文信息
+  memory_update_strategy: "deterministic"
+  
+  # Tool settings
+  tool_timeout: 30
+  max_tool_calls_per_turn: 1
+  
+  # Verification settings
+  verification_threshold: 0.8
+  
+  # Model input/output settings
+  max_input_length: 8192  # 降低最大输入长度以防止显存问题
+  max_output_length: 512  # 降低最大输出长度以防止显存问题
+
+# Tool Configuration
+tools:
+  # Enabled tools
+  enabled_tools:
+    - "base_generator"
+    - "python_executor"
+    - "web_search"
+    - "wikipedia_search"
+  
+  # Preferred search tool
+  preferred_search_tool: "duckduckgo_search" #duckduckgo_search or google_custom_search
+  
+  # Search settings
+  search_top_k: 5
+  search_timeout: 10
+  
+  # Wikipedia search settings
+  wikipedia_language: "en"  # Wikipedia language setting: "en" for English, "zh" for Chinese
+  
+  # Python execution
+  python_timeout: 10
+  python_max_output: 1000
+  python_allow_network: false
+  
+  # API Keys (will be loaded from environment or search_api_keys.json)
+  search_apis:
+    base_http_api_url: "https://dashscope.aliyuncs.com/api/v1"
+    google_api_key: "AIzaSyBVV2x7c2C8zpwfu292JGEaKv5LjfYuWes"
+    google_search_engine_id: "00d1e476122c3489b"
+
+# Data Configuration
+data:
+  train_data_path: "src/data/train/combined_train.parquet"
+  val_data_path: "src/data/val/aime24.parquet"
+  train_path: "src/data/train/combined_train.parquet"
+  val_path: "src/data/val/aime24.parquet"
+  
+  # Data sampling
+  max_train_samples: 3
+  max_val_samples: 1
+
+# System Configuration
+system:
+  seed: 42
+  device: "cuda"
+  mixed_precision: "fp16"
+  deterministic: true
+
+# 评估配置
+evaluation:
+  enable_evaluation: true  # 是否启用评估
+  eval_interval: 5  # 评估间隔（每几个epoch评估一次）
+  eval_batch_size: 8  # 评估批次大小
+  save_dir: "eval_results"  # 评估结果保存目录
+  compare_with_baseline: false  # 是否与基线模型比较
+  baseline_model_path: null  # 基线模型路径
+  max_turns: 10
+  timeout: 60
+  save_trajectory: true
+  verbose: false
+
+# 日志配置
+logging:
+  log_dir: "logs"
+  experiment_name: null  # 如果为null，将自动生成时间戳
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  save_trajectories: true  # 是否保存轨迹信息
+  trajectory_sample_rate: 0.1  # 轨迹采样率，保存部分轨迹
+
+# Flow-Group训练算法参数
+flow_group:
+  # 组大小，每个问题生成多条轨迹
+  group_size: 4
+  # 副本模型数
+  copy_model_num: 1
+  # 是否启用并发处理
+  enable_concurrent: true
+  
+  # PPO相关参数
+  epsilon: 0.2  # PPO剪切系数
+  beta: 0.01    # KL惩罚系数
+  entropy_coef: 0.01  # 熵系数，控制探索程度，防止损失为负
+  
+  # 采样参数
+  temperature: 1.0  # 采样温度
+  top_p: 0.9       # 核采样概率
+  max_tokens: 2048 # 最大生成token数
+  
+  # 梯度相关
+  max_grad_norm: 5.0  # 梯度裁剪阈值，增加以防止过度裁剪
+  
+  # 增强版参数 - 多轮/分词级/组归一化
+  enable_multi_turn_loss: true  # 是否启用多轮损失
+  enable_token_level_loss: true  # 是否启用分词级损失
+  enable_group_normalization: true  # 是否启用组归一化
+  
+  # 多轮损失参数
+  turn_weight_decay: 0.95  # 轮次权重衰减因子，后面的轮次权重更低
+  early_turn_bonus: 1.2  # 早期轮次奖励系数，鼓励早期解决问题
+  
+  # 分词级损失参数
+  token_level_weight: 0.5  # 分词级损失权重
+  sequence_level_weight: 0.5  # 序列级损失权重
+  token_importance_threshold: 0.1  # token重要性阈值
+  
+  # 组归一化参数
+  group_normalization_method: "z_score"  # 归一化方法: "z_score", "min_max", "rank"
+  advantage_normalization: true  # 是否对优势进行归一化
+  reward_normalization: true  # 是否对奖励进行归一化
+
+training:
+  batch_size: 8
+  max_epochs: 10
+  learning_rate: 1e-4
+  gradient_accumulation_steps: 4
+  max_turns: 10
+  save_every: 1
+  eval_every: 5  # 每5个epoch评估一次，而不是每个epoch都评估
+  
+  # 新增：评估开关
+  enable_evaluation: false  # 默认关闭评估，提高训练速度
