@@ -5,9 +5,9 @@ model:
   temperature: 0.0  # 全局默认温度参数，当未指定温度时使用此值
   max_length: 8192  # 扩大最大输入长度
   # Planner model (trainable)
-  planner_path: "root/.cache/modelscope/hub/models/Qwen/Qwen3-1___7B"
+  planner_path: 
   planner_model_name: "Qwen3-1___7B"
-  dashscope_api_key: "sk-0f410e5153194f36a77370f83d5fb924"
+  dashscope_api_key: 
   dashscope_base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
   
   # Other modules (API-based)
@@ -21,7 +21,7 @@ model:
   
   # BaseGenerator tool (local model)
   base_generator:
-    model_path: "root/.cache/modelscope/hub/models/Qwen/Qwen3-1___7B"
+    model_path: 
     device: "cuda"
     torch_dtype: "float16"
     max_length: 8192  # 扩大最大生成长度以保留更多上下文信息
@@ -82,8 +82,8 @@ tools:
   # API Keys (will be loaded from environment or search_api_keys.json)
   search_apis:
     base_http_api_url: "https://dashscope.aliyuncs.com/api/v1"
-    google_api_key: "AIzaSyBVV2x7c2C8zpwfu292JGEaKv5LjfYuWes"
-    google_search_engine_id: "00d1e476122c3489b"
+    google_api_key: 
+    google_search_engine_id:
 
 # Data Configuration
 data:
@@ -175,4 +175,5 @@ training:
   eval_every: 5  # 每5个epoch评估一次，而不是每个epoch都评估
   
   # 新增：评估开关
+
   enable_evaluation: false  # 默认关闭评估，提高训练速度
